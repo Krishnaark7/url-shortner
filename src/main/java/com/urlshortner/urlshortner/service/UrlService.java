@@ -4,7 +4,7 @@ import com.urlshortner.urlshortner.model.Url;
 import com.urlshortner.urlshortner.repository.UrlRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Optional;
 
 @Service
@@ -27,8 +27,8 @@ public class UrlService {
         url.setLongUrl(longUrl);
         url.setShortCode(shortCode);
         url.setClickCount(0);
-        url.setCreatedAt(LocalDateTime.now());
-        url.setExpiresAt(LocalDateTime.now().plusDays(30));
+        url.setCreatedAt(new Date());
+        url.setExpiresAt(new Date(System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000));
 
         return urlRepository.save(url);
     }

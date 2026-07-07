@@ -1,7 +1,7 @@
 package com.urlshortner.urlshortner.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table(name = "urls")
@@ -16,10 +16,13 @@ public class Url {
 
     private String shortCode;
     private int clickCount;
-    private LocalDateTime createdAt;
-    private LocalDateTime expiresAt;
 
-    // Getters and Setters
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date expiresAt;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -32,9 +35,9 @@ public class Url {
     public int getClickCount() { return clickCount; }
     public void setClickCount(int clickCount) { this.clickCount = clickCount; }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public Date getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
 
-    public LocalDateTime getExpiresAt() { return expiresAt; }
-    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
+    public Date getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(Date expiresAt) { this.expiresAt = expiresAt; }
 }

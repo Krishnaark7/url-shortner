@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.net.URI;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -18,6 +18,7 @@ public class UrlController {
 
     @Autowired
     private UrlService urlService;
+
     @GetMapping("/")
     public ResponseEntity<Void> home() {
         return ResponseEntity
@@ -25,6 +26,7 @@ public class UrlController {
                 .location(URI.create("/index.html"))
                 .build();
     }
+
     @PostMapping("/api/shorten")
     public ResponseEntity<Map<String, String>> shortenUrl(@RequestBody Map<String, String> request) {
         String longUrl = request.get("longUrl");
@@ -39,7 +41,7 @@ public class UrlController {
 
         Map<String, String> response = new HashMap<>();
         response.put("shortCode", url.getShortCode());
-        response.put("shortUrl", "http://localhost:8080/" + url.getShortCode());
+        response.put("shortUrl", "https://url-shortner-2qts.onrender.com/" + url.getShortCode());
         response.put("originalUrl", url.getLongUrl());
         response.put("expiresAt", url.getExpiresAt().toString());
 
@@ -56,7 +58,7 @@ public class UrlController {
 
         Url url = urlOpt.get();
 
-        if (url.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (url.getExpiresAt().before(new Date())) {
             return ResponseEntity.status(410).build();
         }
 
