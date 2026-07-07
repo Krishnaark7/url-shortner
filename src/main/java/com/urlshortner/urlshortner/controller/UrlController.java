@@ -3,9 +3,11 @@ package com.urlshortner.urlshortner.controller;
 import com.urlshortner.urlshortner.model.Url;
 import com.urlshortner.urlshortner.service.UrlService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.net.URI;
 import java.util.Date;
 import java.util.HashMap;
@@ -18,6 +20,9 @@ public class UrlController {
 
     @Autowired
     private UrlService urlService;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
 
     @GetMapping("/")
     public ResponseEntity<Void> home() {
@@ -71,7 +76,7 @@ public class UrlController {
     private Map<String, String> buildResponse(Url url) {
         Map<String, String> response = new HashMap<>();
         response.put("shortCode", url.getShortCode());
-        response.put("shortUrl", "http://localhost:8080/" + url.getShortCode());
+        response.put("shortUrl", baseUrl + "/" + url.getShortCode());
         response.put("originalUrl", url.getLongUrl());
         response.put("expiresAt", url.getExpiresAt().toString());
         return response;
@@ -81,14 +86,14 @@ public class UrlController {
     public ResponseEntity<Void> redirect(@PathVariable String shortCode) {
         Optional<Url> urlOpt = urlService.getByShortCode(shortCode);
 
-        if (!urlOpt.isPresent()) {
+        if (urlOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
         Url url = urlOpt.get();
 
         if (url.getExpiresAt().before(new Date())) {
-            return ResponseEntity.status(410).build();
+            return ResponseEntity.status(HttpStatus.GONE).build();
         }
 
         urlService.incrementClick(url);
@@ -103,11 +108,12 @@ public class UrlController {
     public ResponseEntity<Map<String, Object>> getStats(@PathVariable String shortCode) {
         Optional<Url> urlOpt = urlService.getByShortCode(shortCode);
 
-        if (!urlOpt.isPresent()) {
+        if (urlOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
         Url url = urlOpt.get();
+
         Map<String, Object> stats = new HashMap<>();
         stats.put("shortCode", url.getShortCode());
         stats.put("originalUrl", url.getLongUrl());
