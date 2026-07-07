@@ -17,6 +17,13 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: urlshortner-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
   app:
     build: .
     container_name: urlshortner-app
@@ -27,9 +34,13 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root123
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       mysql:
         condition: service_healthy
+      redis:
+        condition: service_started
 
 volumes:
   mysql-data:

@@ -12,10 +12,16 @@
         p.subtitle { text-align: center; color: #666; margin-bottom: 30px; }
         .card { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .input-row { display: flex; gap: 10px; }
-        input[type="url"] { flex: 1; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
-        input[type="url"]:focus { border-color: #4f46e5; }
+        input[type="url"], input[type="text"] { flex: 1; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
+        input[type="url"]:focus, input[type="text"]:focus { border-color: #4f46e5; }
         button { padding: 12px 20px; background: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
         button:hover { background: #4338ca; }
+        .mode-toggle { display: flex; gap: 10px; margin-bottom: 16px; }
+        .mode-btn { flex: 1; padding: 10px; background: #f3f4f6; color: #333; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        .mode-btn.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+        .alias-row { display: none; margin-top: 10px; }
+        .alias-row.visible { display: flex; gap: 10px; }
+        .alias-row input { flex: 1; }
         .result { margin-top: 20px; padding: 16px; background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; display: none; }
         .result label { font-size: 12px; color: #16a34a; font-weight: bold; }
         .result-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
@@ -35,10 +41,20 @@
     <p class="subtitle">Paste a long URL and get a short one instantly</p>
 
     <div class="card">
+        <div class="mode-toggle">
+            <button class="mode-btn active" id="randomModeBtn" onclick="setMode('random')">Random Shorten</button>
+            <button class="mode-btn" id="customModeBtn" onclick="setMode('custom')">Custom Shorten</button>
+        </div>
+
         <div class="input-row">
             <input type="url" id="urlInput" placeholder="https://example.com/very/long/url" />
             <button onclick="shortenUrl()">Shorten</button>
         </div>
+
+        <div class="alias-row" id="aliasRow">
+            <input type="text" id="aliasInput" placeholder="your-custom-name (3-30 chars)" />
+        </div>
+
         <div class="result" id="result">
             <label>YOUR SHORT URL</label>
             <div class="result-row">
@@ -68,10 +84,20 @@
 
 <script>
     const links = [];
+    let currentMode = 'random';
+
+    function setMode(mode) {
+        currentMode = mode;
+        document.getElementById('randomModeBtn').classList.toggle('active', mode === 'random');
+        document.getElementById('customModeBtn').classList.toggle('active', mode === 'custom');
+        document.getElementById('aliasRow').classList.toggle('visible', mode === 'custom');
+    }
 
     async function shortenUrl() {
         const input = document.getElementById('urlInput');
         const url = input.value.trim();
+        const aliasInput = document.getElementById('aliasInput');
+        const alias = aliasInput.value.trim();
         const resultDiv = document.getElementById('result');
         const errorDiv = document.getElementById('error');
 
@@ -90,11 +116,22 @@
             return;
         }
 
+        if (currentMode === 'custom' && !alias) {
+            errorDiv.textContent = 'Please enter a custom name';
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        const endpoint = currentMode === 'custom' ? '/api/shorten/custom' : '/api/shorten';
+        const body = currentMode === 'custom'
+            ? { longUrl: url, alias: alias }
+            : { longUrl: url };
+
         try {
-            const response = await fetch('/api/shorten', {
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ longUrl: url })
+                body: JSON.stringify(body)
             });
 
             const data = await response.json();
@@ -108,6 +145,7 @@
             document.getElementById('shortUrl').textContent = data.shortUrl;
             resultDiv.style.display = 'block';
             input.value = '';
+            aliasInput.value = '';
 
             links.unshift({ short: data.shortUrl, long: url, clicks: 0 });
             renderTable();
@@ -140,7 +178,7 @@
     }
 
     document.getElementById('urlInput').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') shortenUrl();
+        if (e.key === 'Enter' && currentMode === 'random') shortenUrl();
     });
 </script>
 </body>

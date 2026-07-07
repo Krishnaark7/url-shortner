@@ -37,15 +37,44 @@ public class UrlController {
             return ResponseEntity.badRequest().body(error);
         }
 
-        Url url = urlService.shortenUrl(longUrl);
+        try {
+            Url url = urlService.shortenUrl(longUrl);
+            return ResponseEntity.ok(buildResponse(url));
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
 
+    @PostMapping("/api/shorten/custom")
+    public ResponseEntity<Map<String, String>> shortenUrlCustom(@RequestBody Map<String, String> request) {
+        String longUrl = request.get("longUrl");
+        String alias = request.get("alias");
+
+        if (longUrl == null || longUrl.isEmpty()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "URL cannot be empty");
+            return ResponseEntity.badRequest().body(error);
+        }
+
+        try {
+            Url url = urlService.shortenUrlCustom(longUrl, alias);
+            return ResponseEntity.ok(buildResponse(url));
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(error);
+        }
+    }
+
+    private Map<String, String> buildResponse(Url url) {
         Map<String, String> response = new HashMap<>();
         response.put("shortCode", url.getShortCode());
-        response.put("shortUrl", "https://url-shortner-2qts.onrender.com/" + url.getShortCode());
+        response.put("shortUrl", "http://localhost:8080/" + url.getShortCode());
         response.put("originalUrl", url.getLongUrl());
         response.put("expiresAt", url.getExpiresAt().toString());
-
-        return ResponseEntity.ok(response);
+        return response;
     }
 
     @GetMapping("/{shortCode:(?!index\\.html).*}")

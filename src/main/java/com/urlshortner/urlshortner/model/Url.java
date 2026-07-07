@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "urls")
+@Table(name = "urls", indexes = {
+        @Index(name = "idx_long_url_hash", columnList = "longUrlHash")
+})
 public class Url {
 
     @Id
@@ -14,7 +16,12 @@ public class Url {
     @Column(length = 2000)
     private String longUrl;
 
+    @Column(name = "long_url_hash", length = 64)
+    private String longUrlHash;
+
+    @Column(unique = true, length = 50)
     private String shortCode;
+
     private int clickCount;
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -28,6 +35,9 @@ public class Url {
 
     public String getLongUrl() { return longUrl; }
     public void setLongUrl(String longUrl) { this.longUrl = longUrl; }
+
+    public String getLongUrlHash() { return longUrlHash; }
+    public void setLongUrlHash(String longUrlHash) { this.longUrlHash = longUrlHash; }
 
     public String getShortCode() { return shortCode; }
     public void setShortCode(String shortCode) { this.shortCode = shortCode; }
