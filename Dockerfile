@@ -2,6 +2,7 @@
 FROM eclipse-temurin:17-jdk-jammy AS builder
 WORKDIR /app
 COPY . .
+RUN chmod +x mvnw
 RUN ./mvnw clean package -DskipTests
 
 # Stage 2 - Run the JAR
